@@ -1,0 +1,6 @@
+logger_level: DEBUG
+format: "[%(levelname)s] %(asctime)s - %(message)s"
+use_file_handler: false
+log_path: ""
+log_file_level: WARNING
+use_stream_handler: true
