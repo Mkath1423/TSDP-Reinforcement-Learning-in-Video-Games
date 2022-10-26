@@ -8,7 +8,7 @@ def exists(path, msg=""):
     out = os.path.exists(path)
     if not out:
         log.warning(f"path: {path} does not exist." + msg)
-
+        log.warning(f"path does not exist")
     return out
 
 
