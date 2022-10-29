@@ -1,7 +1,9 @@
-from logger import Logger, LoggerConfig
+from logger import create_logger, LoggerConfig
+
+from .config import *
 
 config = {
     "name": "utilities"
 }
 
-log = Logger(LoggerConfig(config))
+log = create_logger(LoggerConfig(config))

@@ -1,7 +1,7 @@
-from logger import Logger, LoggerConfig
+from logger import create_logger, LoggerConfig
 
 config = {
     "name": "game"
 }
 
-log = Logger(LoggerConfig(config))
+log = create_logger(LoggerConfig(config))

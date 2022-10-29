@@ -4,25 +4,25 @@ import yaml
 from utilities import log
 
 
-def exists(path, msg=""):
+def exists(path, msg="", supress_warning=False):
     out = os.path.exists(path)
-    if not out:
+    if not out and not supress_warning:
         log.warning(f"path: {path} does not exist." + msg)
         log.warning(f"path does not exist")
     return out
 
 
-def is_dir(path, msg=""):
+def is_dir(path, msg="", supress_warning=False):
     out = os.path.isdir(path)
-    if not out:
+    if not out and not supress_warning:
         log.warning(f"expected path: {path} to be a dir, but it is not." + msg)
 
     return out
 
 
-def is_file(path, msg=""):
+def is_file(path, msg="", supress_warning=False):
     out = os.path.isfile(path)
-    if not out:
+    if not out and not supress_warning:
         log.warning(f"expected path: {path} to be a file, but it is not." + msg)
 
     return out
