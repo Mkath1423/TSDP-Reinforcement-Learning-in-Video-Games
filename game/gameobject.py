@@ -1,14 +1,13 @@
-from pygame.sprite import Sprite, Group, AbstractGroup
 
 from abc import ABC, abstractmethod
 
 import itertools
 
-#from game import log
+from game import log
 
 
 class GameObject(Sprite, ABC):
-    gen_id = itertools.count()#.next
+    gen_id = itertools.count().__next__
 
     def __init__(self, name, *groups: AbstractGroup):
         super().__init__(*groups)
@@ -37,7 +36,7 @@ class GameObject(Sprite, ABC):
 
 
 class GameObjectGroup(Group):
-    gen_id = itertools.count()#.next
+    gen_id = itertools.count().__next__
 
     def __init__(self, name, *groups: AbstractGroup, suppress_warnings=False):
         super().__init__(*groups)
