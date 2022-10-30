@@ -1,7 +1,8 @@
 from utilities import create_logger, LoggerConfig
 
-config = {
-    "name": "game"
-}
+from utilities import load_yaml, get_arg
 
-log = create_logger(LoggerConfig(config))
+config = load_yaml(get_arg("config"))["game"]
+
+log = create_logger(LoggerConfig(config["logger"]))
+log.info("create game log")

@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 import itertools
 
+from pygame.sprite import Sprite, AbstractGroup, Group
+
 from game import log
 
 
@@ -19,7 +21,6 @@ class GameObject(Sprite, ABC):
         return self.id
 
     @property
-    @abstractmethod
     def get_name(self):
         return self.name
 
@@ -46,7 +47,6 @@ class GameObjectGroup(Group):
         self.suppress_warnings = suppress_warnings
         self.warned_duplicates = []
 
-
     @property
     def get_id(self):
         return self.id
@@ -68,7 +68,7 @@ class GameObjectGroup(Group):
                     self.warned_duplicates.append(obj.id)
                     continue
 
-            out[obj.id] = (obj.name, obj.get_state())
+            out[obj.id] = obj.get_state()
 
         return out
 
@@ -79,12 +79,32 @@ class GameObjectGroup(Group):
                 continue
 
             # if the new state is None then remove the sprite
-            val = new_state.get(sprite.get_id(), default=None)
+            val = new_state.get(sprite.id, None)
             if val is None:
                 to_remove.append(sprite.get_id())
 
             else:
-                sprite.update(val)
+                sprite.update_state(val)
 
-        self.remove(to_remove)
+        self.remove(*to_remove)
+
+
+if __name__ == "__main__":
+    class TestGO(GameObject):
+        def get_state(self):
+            return {"name":self.name, "id":self.id}
+
+        def update_state(self, new_state):
+            log.debug(self.id, new_state["id"])
+
+    groupA = GameObjectGroup("A")
+    groupB = GameObjectGroup("B")
+
+    log.debug("group ids:", groupA.id, groupB.id)
+
+    for i in range(10):
+        groupA.add(TestGO(f"A{i}"))
+        groupB.add(TestGO(f"B{i}"))
+
+    groupA.update_state(groupA.get_state())
 

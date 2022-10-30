@@ -12,7 +12,7 @@ class Config:
 
     def __init__(self, d: dict):
         for requirement in self.requirements:
-            if requirement not in d.keys():
+            if d is None or requirement not in d.keys():
                 logging.error(f"requirement not met {requirement}, failed to create config.")
                 return
 
@@ -22,3 +22,5 @@ class Config:
         for k, v in d.items():
             self.__setattr__(k, v )
 
+    def __str__(self):
+        return vars(self).__str__()
