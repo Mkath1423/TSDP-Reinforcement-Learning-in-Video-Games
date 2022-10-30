@@ -1,7 +1,6 @@
-from logger import Logger, LoggerConfig
+from .logger import create_logger
+from .logger_config import LoggerConfig
 
-config = {
-    "name": "utilities"
-}
+from .args import get_arg
+from .file_loading import load_yaml
 
-log = Logger(LoggerConfig(config))

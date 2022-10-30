@@ -1,7 +1,7 @@
-from logger import Logger, LoggerConfig
+from utilities import LoggerConfig, create_logger
 
-config = {
-    "name": "ai"
-}
+from utilities import load_yaml, get_arg
 
-log = Logger(LoggerConfig(config))
+config = load_yaml(get_arg("config"))["ai"]
+
+log = create_logger(LoggerConfig(config["logger"]))

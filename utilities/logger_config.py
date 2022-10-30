@@ -12,6 +12,8 @@ class LoggerConfig(Config):
         ("log_path", None),
         ("log_file_level", "INFO"),
         ("use_stream_handler", True),
+        ("sep", ", "),
+        ("end", "")
     )
 
     def __init__(self, config: dict):
@@ -22,7 +24,6 @@ class LoggerConfig(Config):
         self.log_file_level     : int  = None
         self.use_stream_handler : bool = None
         super().__init__(config)
-
 
 
 if __name__ == "__main__":

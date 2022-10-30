@@ -1,5 +1,7 @@
 import pygame
 
+from utilities.file_loading import is_file
+
 from game import log
 
 _sprites = {
@@ -7,9 +9,12 @@ _sprites = {
 }
 
 
-def load_sprite(path):
+def load_sprite(path, force_reload=False):
+    if not is_file(path):
+        return
+
     # if sprite was already loaded, use the loaded image
-    if path in _sprites:
+    if path in _sprites and not force_reload:
         log.info(f"found preloaded sprite: {path}")
 
         val = _sprites.get(path, default=None)
