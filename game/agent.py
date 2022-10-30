@@ -1,12 +1,14 @@
 import abc
-
+import pygame
 import numpy as np
 
 
-class Agent(abc.ABC):
+class Agent(pygame.sprite.Sprite, abc.ABC):
 
-    def __init__(self, name, position=(0, 0)):
+    def __init__(self, name, damage, health, position=(0, 0)):
         self.name = name
+        self.damage = damage
+        self.health = health
         self.position = np.asarray(position)
 
     def __str__(self):
