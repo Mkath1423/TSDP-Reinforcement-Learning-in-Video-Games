@@ -1,4 +1,4 @@
-from logger import create_logger, LoggerConfig
+from utilities import create_logger, LoggerConfig
 
 config = {
     "name": "game"
