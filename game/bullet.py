@@ -46,5 +46,5 @@ class Bullets(GameObject):
             bullet_damage()
             self.kill()
 
-    def draw(self):
-        pygame.draw.rect(screen, (255, 0, 0), self.position)
+    def draw(self, bullet):
+        pygame.draw.rect(screen, (255, 0, 0), bullet)
