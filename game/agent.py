@@ -1,5 +1,5 @@
 import abc
-
+import pygame
 import numpy as np
 
 from gameobject import GameObject
@@ -8,14 +8,18 @@ import pygame
 
 class Agent(GameObject, abc.ABC):
 
-    def __init__(self, name, position=(0, 0)):
-        pygame.sprite.Sprite.__init__(self)
-        self.name = name
+    def __init__(self, name, damage, health, position=(0, 0)):
+        
+        self.damage = damage
+        self.health = health
         self.position = np.asarray(position)
 
         self.image = pygame.Surface((50, 50))
         self.image.fill("red")
         self.rect = self.image.get_rect(topleft = position)
+        
+        # gameobject class will set the name and id
+        super().__init__(name)
 
     def update(self):
         self.rect.x = self.position[0]
