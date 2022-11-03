@@ -11,8 +11,8 @@ def main():
     clock = pygame.time.Clock()
     
     level = Level()
+    level.toggle_render(True)
     level.add_agent("test agent 1", 10, 10)
-
     level.add_bullet("test bullet 1")
 
     while True:
