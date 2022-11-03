@@ -6,8 +6,8 @@ class LoggerConfig(Config):
         "name",
     )
     defaults = (
-        ("logger_level", "WARNING"),
-        ("format", "[%(levelname)s] %(asctime)s - %(message)s"),
+        ("logger_level", "DEBUG"),
+        ("format", "[%(name)s %(levelname)s] %(asctime)s - %(message)s"),
         ("use_file_handler", False),
         ("log_path", None),
         ("log_file_level", "INFO"),
@@ -17,6 +17,14 @@ class LoggerConfig(Config):
     )
 
     def __init__(self, config: dict):
+        """
+        Generates a LoggerConfig with the correct attributes
+
+        Only exists for type hinting
+
+        :param config: the loaded configuration of this object
+        """
+        self.name               : str  = None
         self.logger_level       : int  = None
         self.format             : str  = None
         self.use_file_handler   : bool = None

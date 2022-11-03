@@ -1,4 +1,5 @@
 import pygame
+
 from gameobject import GameObject, GameObjectGroup
 import agent
 
@@ -48,3 +49,4 @@ class Bullets(GameObject):
 
     def draw(self, bullet):
         pygame.draw.rect(screen, (255, 0, 0), bullet)
+

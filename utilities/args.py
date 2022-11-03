@@ -6,9 +6,10 @@ parser = argparse.ArgumentParser(description='List the content of a folder')
 
 # Add the arguments
 parser.add_argument('config',
-                       type=str,
-                       help='the global config')
-
+                    type=str,
+                    default=None,
+                    nargs="?",
+                    help='the global config')
 
 args = vars(parser.parse_args())
 
