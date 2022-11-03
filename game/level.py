@@ -16,10 +16,10 @@ class Level():
         if self.render_on:
             self.game_objects.add(obj)
 
-    def add_agent(self, name, damage, health, position=(0,0)):
+    def add_agent(self, name, damage, health, position=(0,0), color=(255,0,0)):
         if self.render_on:
-            self.game_objects.add(Agent(name, damage, health, position))
-            self.add_object(Agent(name, damage, health, position))
+            self.game_objects.add(Agent(name, damage, health, position, color))
+            self.add_object(Agent(name, damage, health, position, color))
 
     def add_bullet(self, name, position=(0,0), velocity=(0,0)):
         if self.render_on:

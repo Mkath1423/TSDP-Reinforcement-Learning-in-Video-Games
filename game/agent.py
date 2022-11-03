@@ -7,14 +7,14 @@ from gameobject import GameObject
 
 class Agent(GameObject, abc.ABC):
 
-    def __init__(self, name, damage, health, position=(0, 0)):
+    def __init__(self, name, damage, health, position=(0, 0), color=(255,0,0)):
         
         self.damage = damage
         self.health = health
         self.position = np.asarray(position)
 
         self.image = pygame.Surface((50, 50))
-        self.image.fill("red")
+        self.image.fill(color)
         self.rect = self.image.get_rect(topleft = position)
         
         # gameobject class will set the name and id

@@ -12,8 +12,10 @@ def main():
     
     level = Level()
     level.toggle_render(True)
-    level.add_agent("test agent 1", 10, 10)
-    level.add_bullet("test bullet 1")
+#    level.add_agent("test agent 1", 10, 10)
+#    level.add_bullet("test bullet 1")
+    level.add_agent("player1", 10, 10, position=(180,350))
+    level.add_agent("player2", 10, 10, position=(780, 350), color=(0,0,255))
 
     while True:
         clock.tick(60)
