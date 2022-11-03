@@ -3,7 +3,6 @@ import pygame
 import numpy as np
 
 from gameobject import GameObject
-import pygame
 
 
 class Agent(GameObject, abc.ABC):
