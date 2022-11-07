@@ -7,22 +7,22 @@ from gameobject import GameObject
 
 class Agent(GameObject, abc.ABC):
 
-    def __init__(self, name, damage, health, position=(0, 0), color=(255,0,0)):
+    def __init__(self, name, damage, health, state, color=(255,0,0)):
         
         self.damage = damage
         self.health = health
-        self.position = np.asarray(position)
+        self.state = state
 
         self.image = pygame.Surface((50, 50))
         self.image.fill(color)
-        self.rect = self.image.get_rect(topleft = position)
+        self.rect = self.image.get_rect(topleft = self.state["position"])
         
         # gameobject class will set the name and id
         super().__init__(name)
 
     def update(self):
-        self.rect.x = self.position[0]
-        self.rect.y = self.position[1]
+        self.rect.x = self.state["position"][0]
+        self.rect.y = self.state["position"][1]
 
     def __str__(self):
         return self.__repr__()
@@ -39,10 +39,10 @@ class Agent(GameObject, abc.ABC):
         return self.name
 
     def get_state(self):
-        pass
+        return self.state
 
     def update_state(self, new_state):
-        pass
+        self.state = new_state
 
 
     """ 

@@ -8,28 +8,26 @@ from gameobject import GameObject, GameObjectGroup
 
 
 class Bullet(GameObject, abc.ABC):
-    def __init__(self, name, position=(0,0), velocity=(0,0)):
+    def __init__(self, name, state):
         pygame.sprite.Sprite.__init__(self)
-        self.position = position
-        self.velocity = velocity
+        self.state = state
 
         # need to determine the side and to make it more specific
         self.image = pygame.Surface((5, 5))
         self.image.fill("yellow")
-        self.rect = self.image.get_rect(topleft=self.position)
+        self.rect = self.image.get_rect(topleft=self.state['position'])
 
         super().__init__(name)
 
     def update(self):
-        self.rect.x = self.position[0]
-        self.rect.y = self.position[1]
+        self.rect.x = self.state['position'][0]
+        self.rect.y = self.state['position'][1]
 
-    
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return f"Agent({self.name}, {self.position})"
+        return f"Bullet({self.name}, {self.state['position']}, {self.state['velocity']})"
 
     @property
     def get_id(self):
@@ -40,10 +38,10 @@ class Bullet(GameObject, abc.ABC):
         return self.name
 
     def get_state(self):
-        pass
+        return self.state
 
     def update_state(self, new_state):
-        pass
+        self.state = new_state
 
 """
     # substitution for pygame collide

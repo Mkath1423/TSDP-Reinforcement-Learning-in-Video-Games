@@ -9,13 +9,13 @@ def main():
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Arena")
     clock = pygame.time.Clock()
-    
     level = Level()
     level.toggle_render(True)
-#    level.add_agent("test agent 1", 10, 10)
-#    level.add_bullet("test bullet 1")
-    level.add_agent("player1", 10, 10, position=(180,350))
-    level.add_agent("player2", 10, 10, position=(780, 350), color=(0,0,255))
+    level.add_agent("player1", 10, 10, state={'position':(180,350)})
+    level.add_agent("player2", 10, 10, state={'position':(780, 350)}, color=(0,0,255))
+    level.add_bullet('bullet 1', state={'position':(180, 350), 'velocity':(1,0)})
+    level.add_bullet('bullet 2', state={'position':(180, 350), 'velocity':(2,1)})
+
 
     while True:
         clock.tick(60)
@@ -25,6 +25,7 @@ def main():
                 sys.exit()
 
         screen.fill("black")
+        level.update_states(level.agents_states)
         level.render(screen)
 
         pygame.display.update()
