@@ -100,6 +100,7 @@ if __name__ == "__main__":
     groupA = GameObjectGroup("A")
     groupB = GameObjectGroup("B")
 
+    log.debug("group ids:", groupA.get_id, groupB.get_id)
     log.debug("group ids:", groupA.id, groupB.id)
 
     for i in range(10):

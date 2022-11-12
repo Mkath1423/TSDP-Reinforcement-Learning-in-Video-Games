@@ -24,4 +24,3 @@ class ReplayMemory:
 
     def get_random_sample(self, size):
         random.sample(self._memory, min(size, len(self)))
-        
