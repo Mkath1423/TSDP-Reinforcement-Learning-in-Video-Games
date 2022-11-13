@@ -1,16 +1,15 @@
 import abc
 import pygame
 import numpy as np
+from random import randint
 
 from gameobject import GameObject
 
 
 class Agent(GameObject, abc.ABC):
 
-    def __init__(self, name, damage, health, state, color=(255,0,0)):
+    def __init__(self, name, state, color=(255,0,0)):
         
-        self.damage = damage
-        self.health = health
         self.state = state
 
         self.image = pygame.Surface((50, 50))
@@ -28,7 +27,7 @@ class Agent(GameObject, abc.ABC):
         return self.__repr__()
 
     def __repr__(self):
-        return f"Agent({self.name}, {self.position})"
+        return f"Agent({self.name}, {self.state})"
 
     @property
     def get_id(self):
@@ -44,15 +43,7 @@ class Agent(GameObject, abc.ABC):
     def update_state(self, new_state):
         self.state = new_state
 
-
-    """ 
-    @abc.abstractmethod
     def get_move(self, game_state):
-        pass
-    """
-
-    """ sprite group should handle draw by itself
-    @abc.abstractmethod
-    def draw(self):
-        pass
-    """
+        # TODO get predicted move
+        i = randint(0,4)
+        return i

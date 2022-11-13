@@ -4,9 +4,6 @@ import abc
 from gameobject import GameObject, GameObjectGroup
 
 
-# haven't applied to the dictionary
-
-
 class Bullet(GameObject, abc.ABC):
     def __init__(self, name, state):
         pygame.sprite.Sprite.__init__(self)
@@ -42,6 +39,9 @@ class Bullet(GameObject, abc.ABC):
 
     def update_state(self, new_state):
         self.state = new_state
+
+    def get_move(self, game_state):
+        pass
 
 """
     # substitution for pygame collide
