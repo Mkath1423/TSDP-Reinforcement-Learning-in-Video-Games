@@ -32,6 +32,10 @@ class GameObject(Sprite, ABC):
     def update_state(self, new_state):
         pass
 
+    @abstractmethod
+    def get_move(self, game_state):
+        pass
+
     def __repr__(self):
         return f"GameObject(name={self.name}, id={self.id})"
 
@@ -81,13 +85,28 @@ class GameObjectGroup(Group):
             # if the new state is None then remove the sprite
             val = new_state.get(sprite.id, None)
             if val is None:
-                to_remove.append(sprite.get_id())
-
+                to_remove.append(sprite.get_id)
             else:
                 sprite.update_state(val)
 
         self.remove(*to_remove)
 
+    def get_moves(self, game_state):
+        out = {}
+
+        for obj in self.sprites():
+            if not isinstance(obj, GameObject):
+                continue
+
+            if out.__contains__(obj.id):
+                if obj.id not in self.warned_duplicates and not self.suppress_warnings:
+                    log.warning(f"Group {self.id} contains duplicate object {repr(obj)}")
+                    self.warned_duplicates.append(obj.id)
+                    continue
+
+            out[obj.id] = obj.get_move(game_state)
+
+        return out
 
 if __name__ == "__main__":
     class TestGO(GameObject):
