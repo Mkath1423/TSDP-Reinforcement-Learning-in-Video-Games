@@ -11,11 +11,12 @@ def main():
     clock = pygame.time.Clock()
     level = Level()
     level.toggle_render(True)
-    level.add_agent("player1", 10, 10, state={'position':(180,350)})
-    level.add_agent("player2", 10, 10, state={'position':(780, 350)}, color=(0,0,255))
-    level.add_bullet('bullet 1', state={'position':(180, 350), 'velocity':(1,0)})
-    level.add_bullet('bullet 2', state={'position':(180, 350), 'velocity':(2,1)})
 
+    level.add_agent("player1", state={'position':(180,350), 'hp':10})
+    level.add_agent("player2", state={'position':(780, 350), 'hp':10}, color=(0,0,255))
+    level.add_agent("player3", state={'position':(680, 150), 'hp':10}, color=(30,0,255))
+    level.add_bullet('bullet 1', state={'position':(300, 350), 'velocity':(5,0)})
+    level.add_bullet('bullet 2', state={'position':(300, 350), 'velocity':(2,1)})
 
     while True:
         clock.tick(60)
@@ -25,7 +26,9 @@ def main():
                 sys.exit()
 
         screen.fill("black")
-        level.update_states(level.agents_states)
+
+        level.update_states()
+        level.collision()
         level.render(screen)
 
         pygame.display.update()
