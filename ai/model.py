@@ -1,77 +1,106 @@
 import torch
 
 import torch.nn as nn
+from torch.nn import Conv2d, BatchNorm2d, ReLU, AdaptiveAvgPool2d, Linear
 import torch.nn.functional as F
 
 import torch.optim as optim
-from random import random
+import random
 
 from ai.building_blocks import BNDoubleConv
 
-class QLearningPolicy(nn.Module):
+import torchvision
+from ai.ReplayMemory import State
 
-    def __init__(self, h, w, num_additional_features, outputs):
+from ai import log
+
+
+class PolicyNetwork(nn.Module):
+
+    def __init__(self, num_additional_features, num_outputs):
         super().__init__()
 
-        self.conv1 = BNDoubleConv(1, 16)
-        self.conv2 = BNDoubleConv(16, 16)
+        self.in_conv = Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        self.in_bn = BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.in_relu = ReLU(inplace=True)
 
-        #https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
-        def conv2d_size_out(size, kernel_size=3, stride=1):
-            return (size - (kernel_size - 1) - 1) // stride + 1
+        resnet = torchvision.models.resnet18(pretrained=False)
 
-        convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
-        convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
-        linear_input_size = convw * convh * 16
-        self.fc1 = nn.Linear(linear_input_size + num_additional_features, 256)
-        self.fc2 = nn.Linear(256, outputs)
+        self.layer1 = resnet.layer1
+        self.layer2 = resnet.layer2
+        self.layer3 = resnet.layer3
+        self.layer4 = resnet.layer4
 
-    def forward(self, image, features):
-        x = self.conv1(image)
-        print(x.shape)
-        x = self.conv2(x)
-        print(x.shape)
-        x = self.conv3(x)
-        print(x.shape)
-        print(x.flatten().shape)
+        self.out_pool = AdaptiveAvgPool2d(output_size=(1, 1))
 
+        self.fc = Linear(512 + num_additional_features, num_outputs)
+
+    def forward(self, state: State):
+        image, features = state.image, state.info
+        if len(image.shape) != 4:
+            log.error(f"image must be of form [N, 1, H, W] not {image.shape}.")
+            return None
+
+        if len(features.shape) != 2:
+            log.error(f"features must be of form [N, F] not {features.shape}.")
+            return None
+
+        if image.shape[0] != features.shape[0]:
+            log.error(f"image and features must have the same number of batches. image shape: {image.shape}, feature shape: {features.shape}.")
+            return None
+
+        x = self.in_conv(image)
+        x = self.in_bn(x)
+        x = self.in_relu(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        x = self.out_pool(x)
+        x = torch.flatten(x, 1)
+
+        if features is not None:
+            x = torch.cat((x, features), dim=1)
+
+        x = self.fc(x)
         return x
 
+
 class QTrainer:
-    def __init__(self, model, lr, gamma):
+    def __init__(self, model, lr, gamma, num_moves):
         self.lr = lr
         self.gamma = gamma
-        self.model = model
+        self.model : nn.Module = model
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
+        self.num_moves = num_moves
 
     # 'w'=0, 'a'=1, 's'=2, 'd'=3, rest=4, TODO shoot=5
     # state is the processed image data?
-    def get_move(self,image,state):
-        
+    def get_move(self, state):
+
+        final_move = torch.zeros((self.num_moves, ))
+
         # TODO better epsilon choice for exploration tradeoff
-        if random.randint(0, 200) < 80:
-            move = random.randint(0, 4)
+        if random.randint(0, 200) < 80 and self.model.training:
+            move = random.randint(0, self.num_moves)
         else:
-            state0 = torch.tensor([image,state], dtype=torch.float)
-            prediction = self.model(state0) # need self.model
+            prediction = self.model(state)
             move = torch.argmax(prediction).item()
 
-        return move
+        final_move[move] = 1
+
+        return final_move
     
-    def train_step(self, state, action, reward, next_state, done):
-        state = torch.tensor(state, dtype=torch.float)
-        next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
-        reward = torch.tensor(reward, dtype=torch.float)
-        
-        # dealing with 1d
-        if len(state.shape) == 1:
-            state = torch.unsqueeze(state, 0)
-            next_state = torch.unsqueeze(next_state, 0)
-            action = torch.unsqueeze(action, 0)
-            reward = torch.unsqueeze(reward, 0)
-            done = (done, )
+    def train_step(self,
+                   state: State,
+                   action,
+                   reward,
+                   next_state: State,
+                   done):
+        #TODO: add checks
 
         # 1: predicted Q values with current state
         pred = self.model(state)
@@ -95,10 +124,10 @@ class QTrainer:
 
 
 if __name__ == "__main__":
-    print("making_model")
-    model = QLearningPolicy(640, 640, 0, 6)
+    log.debug("making_model")
+    _model = PolicyNetwork(6, 6)
 
-    print("making_inputs")
-    inputs = torch.randn((1, 1, 640, 640))
+    log.debug("making_inputs")
+    _inputs = torch.randn((2, 1, 640, 640))
 
-    model(inputs, None)
+    log.debug("model output:", _model(_inputs, torch.randn((2, 6))))

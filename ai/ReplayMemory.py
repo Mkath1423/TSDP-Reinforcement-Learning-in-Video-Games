@@ -2,12 +2,24 @@ from collections import deque
 from dataclasses import dataclass
 import random
 
+import torch
+
+
+@dataclass
+class State:
+    image: torch.tensor
+    info: torch.tensor
+
+    def __getitem__(self, item):
+        return State(self.image[item], self.info[item])
+
+
 @dataclass
 class Transition:
-    state: dict
+    state: State
     action: int
     reward: int
-    new_state: dict
+    new_state: State
     is_done: bool
 
 
@@ -24,3 +36,6 @@ class ReplayMemory:
 
     def get_random_sample(self, size):
         random.sample(self._memory, min(size, len(self)))
+
+    def __getitem__(self, item):
+        self._memory.__getitem__(item)
