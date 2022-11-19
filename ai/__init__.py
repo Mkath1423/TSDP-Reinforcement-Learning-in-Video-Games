@@ -1,11 +1,15 @@
-from utilities import LoggerConfig, create_logger
+from utilities import LoggerConfig, create_logger, get_config
+from utilities.config import ModelConfig, TrainerConfig
 
-from utilities import load_yaml, get_arg
+logger_config = get_config("ai", "logger")
 
+if logger_config is None:
+    logger_config = {"name", "AI"}
 
-config = {"name": "AI"}
+log = create_logger(LoggerConfig(logger_config))
 
-if get_arg("config") is not None:
-    config = load_yaml(get_arg("config"))["ai"]["logger"]
+model_config   = ModelConfig(get_config("ai", "model"))
+trainer_config = TrainerConfig(get_config("ai", "trainer"))
 
-log = create_logger(LoggerConfig(config))
+log.info("model_config", vars(model_config))
+log.info("trainer_config", vars(trainer_config))

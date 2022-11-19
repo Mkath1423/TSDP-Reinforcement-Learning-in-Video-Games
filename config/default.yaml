@@ -1,0 +1,72 @@
+game:
+  level:
+    agents:
+      - name: ai
+        position: [ 100, 100 ]
+        type: AIAgent
+        color: [ 0, 0, 255 ]
+        size: [ 50, 50 ]
+        sprite: "sprite_path"
+        max_hp: 10
+        shoot_cooldown: 1
+        movment_speed: 10
+
+      - name: target1
+        position: [ 50, 50 ]
+        type: Target
+        color: [ 255, 0, 255 ]
+        size: [ 50, 50 ]
+        sprite: "sprite_path"
+        max_hp: 10
+        shoot_cooldown: 1
+        movment_speed: 10
+
+      - name: target2
+        type: Target
+        position: [ 800, 400 ]
+        size: [ 50, 50 ]
+        sprite: "sprite_path"
+        max_hp: 10
+        shoot_cooldown: 1
+        movment_speed: 10
+
+    bullet:
+      damage: 1
+      speed: 30
+      size: 3
+
+    title: Arena
+    window_size: [1000, 800]
+    fps: 60
+    background_color: black
+
+  logger:
+    name: GAME
+    logger_level: INFO
+    format: "[%(name)s %(levelname)s] %(asctime)s - %(message)s"
+    use_file_handler: false
+    log_path: ""
+    log_file_level: DEBUG
+    use_stream_handler: true
+
+ai:
+  trainer:
+    lr: 0.001
+    gamma: 0.8
+    epsilon: 0.8
+    max_model_memory: 10000
+    batch_size: 1000
+
+  model:
+    num_extra_inputs: 0
+    num_outputs: 5
+
+  logger:
+    name: AI
+    logger_level: INFO
+    format: "[%(name)s %(levelname)s] %(asctime)s - %(message)s"
+    use_file_handler: false
+    log_path: ""
+    log_file_level: WARNING
+    use_stream_handler: true
+

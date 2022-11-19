@@ -1,7 +1,7 @@
 import pygame
 import sys
 from level import Level
-
+import ai
 def main():
     pygame.init()
     width = 1000

@@ -1,8 +1,5 @@
 import logging
 
-import inspect
-
-
 _level = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
