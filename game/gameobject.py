@@ -85,11 +85,13 @@ class GameObjectGroup(Group):
             # if the new state is None then remove the sprite
             val = new_state.get(sprite.id, None)
             if val is None:
-                to_remove.append(sprite.get_id)
+
+                to_remove.append(sprite)
+
             else:
                 sprite.update_state(val)
 
-        self.remove(*to_remove)
+        self.remove(to_remove)
 
     def get_moves(self, game_state):
         out = {}
@@ -126,4 +128,10 @@ if __name__ == "__main__":
         groupB.add(TestGO(f"B{i}"))
 
     groupA.update_state(groupA.get_state())
+    groupB.update_state(dict([
+        (k, None) for k, v in groupB.get_state().items()
+    ]))
+
+    print(len(groupA.sprites()))
+    print(len(groupB.sprites()))
 
