@@ -1,38 +1,49 @@
 import pygame
+import abc
 
 from gameobject import GameObject, GameObjectGroup
-import agent
 
 
-# haven't applied to the dictionary
-
-
-class Bullets(GameObject):
-    def __init__(self, player, player2, direction, d=3, velocity=3):
+class Bullet(GameObject, abc.ABC):
+    def __init__(self, name, state):
         pygame.sprite.Sprite.__init__(self)
-        self.d = d
-        self.image = pygame.Surface((d, d))
-        self.position = player.position
+        self.state = state
+
         # need to determine the side and to make it more specific
-        self.rect = self.image.get_rect(topleft=self.position)
-        self.velocity = velocity
-        self.damage = player.damage
-        self.player2 = player2
-        self.direction = direction
-        bullets.append(self.position)
+        self.image = pygame.Surface((5, 5))
+        self.image.fill("yellow")
+        self.rect = self.image.get_rect(topleft=self.state['position'])
+
+        super().__init__(name)
 
     def update(self):
-        if self.direction == 'up':
-            self.rect.y -= self.velocity
-        elif self.direction == 'left':
-            self.rect.x -= self.velocity
-        elif self.direction == 'down':
-            self.rect.y += self.velocity
-        elif self.direction == 'right':
-            self.rect.x += self.velocity
-        else:  # if it needs angles
-            pass
+        self.rect.x = self.state['position'][0]
+        self.rect.y = self.state['position'][1]
 
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f"Bullet({self.name}, {self.state['position']}, {self.state['velocity']})"
+
+    @property
+    def get_id(self):
+        return self.id
+
+    @property
+    def get_name(self):
+        return self.name
+
+    def get_state(self):
+        return self.state
+
+    def update_state(self, new_state):
+        self.state = new_state
+
+    def get_move(self, game_state):
+        pass
+
+"""
     # substitution for pygame collide
     def collide(self):
         if (player2.rect.x - d) <= bullet.rect.x <= (player2.rect.x + 50):
@@ -49,4 +60,4 @@ class Bullets(GameObject):
 
     def draw(self, bullet):
         pygame.draw.rect(screen, (255, 0, 0), bullet)
-
+"""
