@@ -43,7 +43,9 @@ class Level():
         move_set = ['w','a','s','d', 'rest']
 
         agent_states = self.agents.get_state()
-        agent_moves = self.agents.get_moves([self.agents, self.bullets])
+        bullet_states = self.bullets.get_state()
+        cur_states = {"agents":agent_states, "bullets":bullet_states}
+        agent_moves = self.agents.get_moves(cur_states)
 
         for i in agent_states:
             move = move_set[agent_moves[i]]
@@ -69,7 +71,6 @@ class Level():
         self.agents.update_state(agent_states)
             
 
-        bullet_states = self.bullets.get_state()
         for i in bullet_states:
             pos = bullet_states[i]['position']
             vel = bullet_states[i]['velocity']
