@@ -63,7 +63,7 @@ ai:
 
   logger:
     name: AI
-    logger_level: INFO
+    logger_level: DEBUG
     format: "[%(name)s %(levelname)s] %(asctime)s - %(message)s"
     use_file_handler: false
     log_path: ""

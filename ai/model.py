@@ -69,9 +69,11 @@ class PolicyNetwork(nn.Module):
 
 
 class QTrainer:
-    def __init__(self, model, lr, gamma, num_moves):
+    def __init__(self, model, lr, gamma, epsilon, num_moves):
         self.lr = lr
         self.gamma = gamma
+        self.epsilon = epsilon
+
         self.model : nn.Module = model
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
@@ -83,8 +85,7 @@ class QTrainer:
 
         final_move = torch.zeros((self.num_moves, ))
 
-        # TODO better epsilon choice for exploration tradeoff
-        if random.randint(0, 200) < 80 and self.model.training:
+        if random.random() < self.epsilon and self.model.training:
             move = random.randint(0, self.num_moves)
         else:
             prediction = self.model(state)

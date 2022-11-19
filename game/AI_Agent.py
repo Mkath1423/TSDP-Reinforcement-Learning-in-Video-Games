@@ -4,6 +4,7 @@ import numpy as np
 import torch
 
 from ai.ReplayMemory import ReplayMemory, Transition, State
+from ai import model_config, trainer_config
 from game.agent import Agent
 from gameobject import GameObject
 import pygame
@@ -13,9 +14,18 @@ from ai.model import PolicyNetwork, QTrainer
 
 class AIAgent(Agent):
     def __init__(self, name, damage, health, position=(0, 0)):
-        self.model = PolicyNetwork(0, 5)
+        self.model = PolicyNetwork(
+            model_config.num_extra_inputs,
+            model_config.num_outputs
+        )
 
-        self.trainer = QTrainer(self.model, 0.001, 0.8, 5)
+        self.trainer = QTrainer(
+            self.model,
+            trainer_config.lr,
+            trainer_config.gamma,
+            trainer_config.epsilon,
+            5
+        )
 
         self.replay_memory = ReplayMemory(10000)
 
@@ -41,7 +51,6 @@ class AIAgent(Agent):
 
         transition = self.replay_memory[-1]
 
-
         state: State = transition.state
         action: int = transition.action
         reward: int = transition.reward
@@ -57,16 +66,16 @@ class AIAgent(Agent):
         transitions = self.replay_memory.get_random_sample(1000)
 
         state: State = State(
-                torch.stack([t.state.image for t in transitions]).to(dtype=torch.float),
-                torch.stack([t.state.info for t in transitions]).to(dtype=torch.float)
-            )
+            torch.stack([t.state.image for t in transitions]).to(dtype=torch.float),
+            torch.stack([t.state.info for t in transitions]).to(dtype=torch.float)
+        )
         action = torch.tensor([t.action for t in transitions]).to(dtype=torch.long)
         reward = torch.tensor([t.reward for t in transitions]).to(dtype=torch.float)
 
         new_state: State = State(
-                torch.stack([t.new_state.image for t in transitions]).to(dtype=torch.float),
-                torch.stack([t.new_state.info for t in transitions]).to(dtype=torch.float)
-            )
+            torch.stack([t.new_state.image for t in transitions]).to(dtype=torch.float),
+            torch.stack([t.new_state.info for t in transitions]).to(dtype=torch.float)
+        )
         is_done = [t.is_done for t in transitions]
 
         self.trainer.train_step(state, action, reward, new_state, is_done)
