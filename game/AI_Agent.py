@@ -22,10 +22,6 @@ class AIAgent(Agent):
         # gameobject class will set the name and id
         super().__init__(name, damage, health, position=(0, 0))
 
-    def update(self):
-        self.rect.x = self.position[0]
-        self.rect.y = self.position[1]
-
     def get_move(self, global_state):
         image = None
         info = None

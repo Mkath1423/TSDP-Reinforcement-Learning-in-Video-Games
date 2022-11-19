@@ -1,11 +1,11 @@
-from utilities import create_logger, LoggerConfig
+from utilities import create_logger, get_config, LoggerConfig, LevelConfig
 
-from utilities import load_yaml, get_arg
+logger_config = get_config("game", "logger")
 
-config = {"name":"GAME"}
+if logger_config is None:
+    logger_config = {"name", "GAME"}
 
-if get_arg("config") is not None:
-    config = load_yaml(get_arg("config"))["game"]["logger"]
-
-log = create_logger(LoggerConfig(config))
+log = create_logger(LoggerConfig(logger_config))
 log.info("create game log")
+
+level_config = LevelConfig(get_config("game", "level"))

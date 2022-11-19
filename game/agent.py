@@ -3,6 +3,7 @@ import pygame
 import numpy as np
 from random import randint
 
+from game import log
 from gameobject import GameObject
 
 
@@ -44,7 +45,7 @@ class Agent(GameObject, abc.ABC):
         self.state = new_state
 
     def get_move(self, game_state):
-        print(game_state)
+        log.debug(game_state)
         # TODO get predicted move
         i = randint(0,4)
         return i

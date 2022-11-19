@@ -50,4 +50,4 @@ def load_yaml(path, log=None):
 
 
 if __name__ == "__main__":
-    print(load_yaml("../config/logger.yaml"))
+    print(load_yaml("../config/default.yaml"))
