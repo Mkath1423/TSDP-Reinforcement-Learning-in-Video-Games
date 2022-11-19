@@ -46,6 +46,10 @@ class Agent(GameObject, abc.ABC):
 
     def get_move(self, game_state):
         log.debug(game_state)
+        
         # TODO get predicted move
-        i = randint(0,4)
+        if self.state['cd'] > 0:
+            i = randint(0,4)
+            return i
+        i = randint(0,12)
         return i
