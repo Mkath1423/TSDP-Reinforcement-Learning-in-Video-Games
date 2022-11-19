@@ -44,7 +44,7 @@ class Agent(GameObject, abc.ABC):
         self.state = new_state
 
     def get_move(self, game_state):
-        print(game_state)
+        #print(game_state)
         # TODO get predicted move
         i = randint(0,4)
         return i

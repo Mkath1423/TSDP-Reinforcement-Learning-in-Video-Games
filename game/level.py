@@ -30,10 +30,14 @@ class Level():
                 b_pos = bullet_states[b]['position']
                 if (a_pos[0] < b_pos[0] + 5 and a_pos[0] + 50 > b_pos[0] and
                     a_pos[1] < b_pos[1] + 5 and a_pos[1] + 50 > b_pos[1]):
-
+                    
+                    # agent on collision
                     agent_states[a]['hp'] -= 10
-                    bullet_states[b] = None
+                    if(agent_states[a]['hp'] <= 0):
+                        agent_states[a] = None
 
+                    # bullet on collision
+                    bullet_states[b] = None
 
         self.agents.update_state(agent_states)
         self.bullets.update_state(bullet_states)
