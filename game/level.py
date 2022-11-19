@@ -2,6 +2,7 @@ import pygame
 from gameobject import GameObject, GameObjectGroup
 from agent import Agent
 from bullet import Bullet
+from player import Player
 
 class Level():
     def __init__(self):
@@ -14,6 +15,9 @@ class Level():
 
     def add_agent(self, name, state, color=(255,0,0)):
         self.agents.add(Agent(name, state, color))
+
+    def add_player(self, name, state):
+        self.agents.add(Player(name, state))
 
     def add_bullet(self, name, state):
         self.bullets.add(Bullet(name, state))

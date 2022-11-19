@@ -12,8 +12,10 @@ def main():
     level = Level()
     level.toggle_render(True)
 
-    level.add_agent("player1", state={'position':(180,350), 'hp':10, 'cd':60})
-    level.add_agent("player2", state={'position':(780, 350), 'hp':10, 'cd':60}, color=(0,0,255))
+    level.add_agent("agent", state={'position':(180,350), 'hp':10, 'cd':60})
+    level.add_agent("agent", state={'position':(780, 350), 'hp':10, 'cd':60}, color=(0,0,255))
+    level.add_player("player", state={'position':(0, 0), 'hp':10, 'cd':60})
+
 
     while True:
         clock.tick(60)
