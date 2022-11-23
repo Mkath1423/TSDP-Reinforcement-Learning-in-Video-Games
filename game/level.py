@@ -3,6 +3,8 @@ from gameobject import GameObject, GameObjectGroup
 from agent import Agent
 from bullet import Bullet
 from player import Player
+import numpy
+
 
 from game import log, level_config
 
@@ -133,6 +135,27 @@ class Level:
         self.agents.draw(screen)
         self.bullets.update()
         self.bullets.draw(screen)
+
+    def generate_image(self):
+        sc = numpy.zeros((800, 1000), dtype=int)
+
+        agent_pos = self.agents.get_state()
+        bullet_pos = self.bullets.get_state()
+
+        for i in agent_pos:
+            x, y = agent_pos[i]['position']
+            for j in range(x, x+51):
+                for k in range(y, y+51):
+                    sc[j][k] = 1
+        for i in bullet_pos:
+            x, y = bullet_pos[i]['position']
+            for j in range(x, x+6):
+                for k in range(y, y+6):
+                    sc[j][k] = 2
+
+        return sc
+
+
 
     def __repr__(self):
         return f'agents:{self.agents}, bullets:{self.bullets}'
