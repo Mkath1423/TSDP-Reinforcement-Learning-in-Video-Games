@@ -1,20 +1,25 @@
 import pygame
-import abc
 
-from gameobject import GameObject, GameObjectGroup
+from game import log
+from gameobject import GameObject
 
 
-class Bullet(GameObject, abc.ABC):
-    def __init__(self, name, state):
+class Bullet(GameObject):
+    def __init__(self, state):
         pygame.sprite.Sprite.__init__(self)
         self.state = state
 
+        self.damage = state.get("damage", 1)
+        self.speed = state.get("speed", 30)
+        self.size = state.get("size", (5, 5))
+        self.class_label = state.get("class_label", 2)
+
         # need to determine the side and to make it more specific
-        self.image = pygame.Surface((5, 5))
+        self.image = pygame.Surface(self.size)
         self.image.fill("yellow")
         self.rect = self.image.get_rect(topleft=self.state['position'])
 
-        super().__init__(name)
+        super().__init__("bullet", self.class_label)
 
     def update(self):
         self.rect.x = self.state['position'][0]
@@ -41,7 +46,7 @@ class Bullet(GameObject, abc.ABC):
         self.state = new_state
 
     def get_move(self, game_state):
-        pass
+        return 0
 
 """
     # substitution for pygame collide

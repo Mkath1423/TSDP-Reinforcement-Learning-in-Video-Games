@@ -19,12 +19,14 @@ class PolicyNetwork(nn.Module):
 
     def __init__(self, num_additional_features, num_outputs):
         super().__init__()
+        self.num_additional_features = num_additional_features
+        self.num_outputs = num_outputs
 
         self.in_conv = Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.in_bn = BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.in_relu = ReLU(inplace=True)
 
-        resnet = torchvision.models.resnet18(pretrained=False)
+        resnet = torchvision.models.resnet18()
 
         self.layer1 = resnet.layer1
         self.layer2 = resnet.layer2
@@ -37,6 +39,10 @@ class PolicyNetwork(nn.Module):
 
     def forward(self, state: State):
         image, features = state.image, state.info
+        if image is None or features is None:
+            log.error("model got None inputs returning blank array")
+            return torch.zeros((1, self.num_outputs)) # TODO check if this is right
+
         if len(image.shape) != 4:
             log.error(f"image must be of form [N, 1, H, W] not {image.shape}.")
             return None
@@ -82,18 +88,11 @@ class QTrainer:
     # 'w'=0, 'a'=1, 's'=2, 'd'=3, rest=4, TODO shoot=5
     # state is the processed image data?
     def get_move(self, state):
-
-        final_move = torch.zeros((self.num_moves, ))
-
         if random.random() < self.epsilon and self.model.training:
-            move = random.randint(0, self.num_moves)
+            return random.randint(0, self.num_moves)
         else:
             prediction = self.model(state)
-            move = torch.argmax(prediction).item()
-
-        final_move[move] = 1
-
-        return final_move
+            return torch.argmax(prediction).item()
     
     def train_step(self,
                    state: State,

@@ -1,6 +1,6 @@
 import pygame
 
-from utilities.file_loading import is_file
+from utilities.files import is_file
 
 from game import log
 

@@ -10,10 +10,11 @@ from gameobject import GameObject
 import pygame
 
 from ai.model import PolicyNetwork, QTrainer
+from utilities.files import save_yaml
 
 
 class AIAgent(Agent):
-    def __init__(self, name, damage, health, position=(0, 0)):
+    def __init__(self, name, state):
         self.model = PolicyNetwork(
             model_config.num_extra_inputs,
             model_config.num_outputs
@@ -30,9 +31,11 @@ class AIAgent(Agent):
         self.replay_memory = ReplayMemory(10000)
 
         # gameobject class will set the name and id
-        super().__init__(name, damage, health, position=(0, 0))
+        super().__init__(name, state)
 
     def get_move(self, global_state):
+        save_yaml(global_state, r"tmp\global_state_example.yaml", default_flow_style=True)
+
         image = None
         info = None
 

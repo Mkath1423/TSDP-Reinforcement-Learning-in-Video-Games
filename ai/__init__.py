@@ -4,7 +4,7 @@ from utilities.config import ModelConfig, TrainerConfig
 logger_config = get_config("ai", "logger")
 
 if logger_config is None:
-    logger_config = {"name", "AI"}
+    logger_config = {"name": "AI"}
 
 log = create_logger(LoggerConfig(logger_config))
 

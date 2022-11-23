@@ -11,10 +11,12 @@ from game import log
 class GameObject(Sprite, ABC):
     gen_id = itertools.count().__next__
 
-    def __init__(self, name, *groups: AbstractGroup):
+    def __init__(self, name, class_label, *groups: AbstractGroup):
         super().__init__(*groups)
         self.id = GameObject.gen_id()
         self.name = name
+
+        self.class_label = 0
 
     @property
     def get_id(self):
@@ -109,6 +111,23 @@ class GameObjectGroup(Group):
             out[obj.id] = obj.get_move(game_state)
 
         return out
+
+    def render_class_map(self, surface):
+        h, w = surface.shape
+        for obj in self.sprites():
+            if not isinstance(obj, GameObject):
+                continue
+
+            if obj.rect.topleft == w or obj.rect.topright == h:
+                continue
+
+            surface[
+                max(0, obj.rect.topleft):min(obj.rect.topright + 1, w),
+                max(0, obj.rect.topleft):min(obj.rect.bottomright + 1, h)
+            ] = obj.class_label
+
+        return surface
+
 
 if __name__ == "__main__":
     class TestGO(GameObject):

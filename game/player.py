@@ -2,6 +2,7 @@ import pygame
 
 from agent import Agent
 
+
 class Player(Agent):
     def __init__(self, name, state):
         super().__init__(name, state)
