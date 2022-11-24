@@ -1,9 +1,4 @@
-{agents: {2: {cd: 57, class_label: 4, color: [0, 0, 255], hp: 10, max_hp: 10, movment_speed: 10,
-      name: ai, position: !!python/tuple [75, 0], shoot_cooldown: 1, size: [50, 50],
-      sprite: sprite_path, type: AIAgent}, 4: {cd: 0, class_label: 3, hp: 10, max_hp: 10,
-      movment_speed: 10, name: target2, position: !!python/tuple [655, 25], shoot_cooldown: 1,
-      size: [50, 50], sprite: sprite_path, type: Target}}, bullets: {75: {class_label: 2,
-      damage: 1, position: !!python/tuple [110, 50], size: &id001 [3, 3], source: 4,
-      speed: 30, velocity: !!python/tuple [-5, 0]}, 87: {class_label: 2, damage: 1,
-      position: !!python/tuple [89, 9], size: *id001, source: 2, speed: 30, velocity: !!python/tuple [
-        -4, -4]}}}
+{agents: {2: {cd: 57, hp: 10, position: !!python/tuple [130, 0]}, 4: {cd: 0, hp: 10,
+      position: !!python/tuple [610, 420]}}, bullets: {68: {position: !!python/tuple [
+        131, 1], source: 2, velocity: !!python/tuple [-4, -4]}, 69: {position: !!python/tuple [
+        139, 9], source: 2, velocity: !!python/tuple [-4, -4]}}}

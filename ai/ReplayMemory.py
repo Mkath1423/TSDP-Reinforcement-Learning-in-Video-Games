@@ -4,6 +4,8 @@ import random
 
 import torch
 
+from ai import log
+
 
 @dataclass
 class State:
@@ -33,6 +35,12 @@ class ReplayMemory:
 
     def append(self, transition):
         self._memory.append(transition)
+
+    def get_last(self):
+        sample = self._memory.pop()
+        self._memory.append(sample)
+
+        return sample
 
     def get_random_sample(self, size):
         random.sample(self._memory, min(size, len(self)))

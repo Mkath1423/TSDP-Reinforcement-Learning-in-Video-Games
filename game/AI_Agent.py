@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 from ai.ReplayMemory import ReplayMemory, Transition, State
-from ai import model_config, trainer_config
+from ai import model_config, trainer_config, log
 from game.agent import Agent
 from gameobject import GameObject
 import pygame
@@ -25,7 +25,7 @@ class AIAgent(Agent):
             trainer_config.lr,
             trainer_config.gamma,
             trainer_config.epsilon,
-            5
+            4 + 8
         )
 
         self.replay_memory = ReplayMemory(10000)
@@ -33,10 +33,13 @@ class AIAgent(Agent):
         # gameobject class will set the name and id
         super().__init__(name, state)
 
-    def get_move(self, global_state):
-        save_yaml(global_state, r"tmp\global_state_example.yaml", default_flow_style=True)
+    def get_reward(self):
+        return self.get_state()["score"]
 
-        image = None
+    def get_move(self, global_state):
+        #save_yaml(global_state, r"tmp\global_state_example.yaml", default_flow_style=True)
+
+        image = global_state["class_map"]
         info = None
 
         return self.trainer.get_move(State(image, info))
@@ -52,13 +55,13 @@ class AIAgent(Agent):
         if len(self.replay_memory) == 0:
             return
 
-        transition = self.replay_memory[-1]
+        transition = self.replay_memory.get_last()
 
         state: State = transition.state
-        action: int = transition.action
-        reward: int = transition.reward
+        action = torch.tensor([transition.action], dtype=torch.long)
+        reward = torch.tensor([transition.reward], dtype=torch.float)
         new_state: State = transition.new_state
-        is_done: bool = transition.is_done
+        is_done = [transition.is_done]
 
         self.trainer.train_step(state, action, reward, new_state, is_done)
 

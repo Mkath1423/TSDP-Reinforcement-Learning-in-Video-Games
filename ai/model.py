@@ -39,21 +39,21 @@ class PolicyNetwork(nn.Module):
 
     def forward(self, state: State):
         image, features = state.image, state.info
-        if image is None or features is None:
-            log.error("model got None inputs returning blank array")
-            return torch.zeros((1, self.num_outputs)) # TODO check if this is right
-
-        if len(image.shape) != 4:
-            log.error(f"image must be of form [N, 1, H, W] not {image.shape}.")
-            return None
-
-        if len(features.shape) != 2:
-            log.error(f"features must be of form [N, F] not {features.shape}.")
-            return None
-
-        if image.shape[0] != features.shape[0]:
-            log.error(f"image and features must have the same number of batches. image shape: {image.shape}, feature shape: {features.shape}.")
-            return None
+        # if image is None or (features is None and self.num_additional_features != 0):
+        #     log.error("model got None inputs returning blank array")
+        #     return torch.zeros((1, self.num_outputs)) # TODO check if this is right
+        #
+        # if len(image.shape) != 4:
+        #     log.error(f"image must be of form [N, 1, H, W] not {image.shape}.")
+        #     return None
+        #
+        # if features is not None and len(features.shape) != 2:
+        #     log.error(f"features must be of form [N, F] not {features.shape}.")
+        #     return None
+        #
+        # if image.shape[0] != features.shape[0]:
+        #     log.error(f"image and features must have the same number of batches. image shape: {image.shape}, feature shape: {features.shape}.")
+        #     return None
 
         x = self.in_conv(image)
         x = self.in_bn(x)

@@ -16,7 +16,7 @@ class GameObject(Sprite, ABC):
         self.id = GameObject.gen_id()
         self.name = name
 
-        self.class_label = 0
+        self.class_label = class_label
 
     @property
     def get_id(self):
@@ -61,6 +61,14 @@ class GameObjectGroup(Group):
     def get_name(self):
         return self.name
 
+    def get_by_id(self, id):
+        for spr in self.sprites():
+            if isinstance(spr, GameObject) and spr.id == id:
+                return spr
+
+        log.warning(f"no gameobject found with id: {id}. returning None")
+        return None
+
     def get_state(self):
         out = {}
 
@@ -84,16 +92,16 @@ class GameObjectGroup(Group):
             if not isinstance(sprite, GameObject):
                 continue
 
-            # if the new state is None then remove the sprite
-            val = new_state.get(sprite.id, None)
-            if val is None:
+            if new_state.__contains__(sprite.id):
+                # if the new state is None then remove the sprite
+                val = new_state[sprite.id]
+                if val is None:
+                    to_remove.append(sprite)
 
-                to_remove.append(sprite)
+                else:
+                    sprite.update_state(val)
 
-            else:
-                sprite.update_state(val)
-
-        self.remove(to_remove)
+        self.remove(*to_remove)
 
     def get_moves(self, game_state):
         out = {}
@@ -122,8 +130,8 @@ class GameObjectGroup(Group):
                 continue
 
             surface[
-                max(0, obj.rect.topleft):min(obj.rect.topright + 1, w),
-                max(0, obj.rect.topleft):min(obj.rect.bottomright + 1, h)
+                max(0, obj.rect.topleft[0]):min(obj.rect.topright[0] + 1, w),
+                max(0, obj.rect.topleft[1]):min(obj.rect.bottomright[1] + 1, h)
             ] = obj.class_label
 
         return surface
@@ -144,8 +152,8 @@ if __name__ == "__main__":
     log.debug("group ids:", groupA.id, groupB.id)
 
     for i in range(10):
-        groupA.add(TestGO(f"A{i}"))
-        groupB.add(TestGO(f"B{i}"))
+        groupA.add(TestGO(f"A{i}", 0))
+        groupB.add(TestGO(f"B{i}", 0))
 
     groupA.update_state(groupA.get_state())
     groupB.update_state(dict([
