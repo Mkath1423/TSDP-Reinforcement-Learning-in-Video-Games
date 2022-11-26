@@ -1,130 +1,156 @@
-import pygame
-from gameobject import GameObject, GameObjectGroup
-from agent import Agent
-from bullet import Bullet
-from player import Player
+from game import log, level_config
 
-class Level():
+import torch
+import numpy as np
+
+from game.gameobject import GameObjectGroup
+from game.agent import Agent
+from game.bullet import Bullet
+
+move_set = ['rest', 'w', 'a', 's', 'd']
+
+
+def norm(x, y):
+    n = np.linalg.norm([x, y])
+    return x / n, y / n
+
+
+v_by_dir = [
+    norm(-4, -4), norm(0, -5), norm(4, -4),
+    norm(-5,  0),              norm(5,  0),
+    norm(-4,  4), norm(0, 5),  norm(4,  4)
+]
+
+
+class Level:
     def __init__(self):
         self.agents = GameObjectGroup("agents")
         self.bullets = GameObjectGroup("bullets")
-        self.render_on = False
 
-    def toggle_render(self, render_on):
-        self.render_on = render_on
+    def add_agent(self, agent: Agent):
+        self.agents.add(agent)
 
-    def add_agent(self, name, state, color=(255,0,0)):
-        self.agents.add(Agent(name, state, color))
+    def add_bullet(self, bullet):
+        self.bullets.add(bullet)
 
-    def add_player(self, name, state):
-        self.agents.add(Player(name, state))
-
-    def add_bullet(self, name, state):
-        self.bullets.add(Bullet(name, state))
-
-    def collision(self):
+    def get_state(self):
         agent_states = self.agents.get_state()
         bullet_states = self.bullets.get_state()
 
-        for a in agent_states:
-            if agent_states[a] == None:
-                continue
-            a_pos = agent_states[a]['position']
+        surface = np.zeros((level_config.window_size[0], level_config.window_size[1]))
+        self.agents.render_class_map(surface)
+        self.bullets.render_class_map(surface)
+        cur_states = {
+            "agents": agent_states,
+            "bullets": bullet_states,
+            "class_map": torch.from_numpy(surface).to(dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+        }
 
-            for b in bullet_states:
-                if bullet_states[b] == None:
-                    continue
-                b_pos = bullet_states[b]['position']
+        return cur_states
 
-                source = bullet_states[b]['source']
-                # on collision
-                if (a_pos[0] < b_pos[0] + 5 and a_pos[0] + 50 > b_pos[0] and
-                    a_pos[1] < b_pos[1] + 5 and a_pos[1] + 50 > b_pos[1]):
-                    if(source == a): continue # bullet comes from the agent itself, skip
+    def update_states(self, state):
+        self.agents.update_state(state["agents"])
+        self.bullets.update_state(state["bullets"])
 
-                    # agent on collision
-                    agent_states[a]['hp'] -= 10
-                    if(agent_states[a]['hp'] <= 0):
-                        agent_states[a] = None
+    def get_moves(self, state):
+        return self.agents.get_moves(state)
 
-                    # bullet on collision
-                    bullet_states[b] = None
-
-        self.agents.update_state(agent_states)
-        self.bullets.update_state(bullet_states)
-
-
-    def update_states(self):
-        move_set = ['w','a','s','d', 'rest']
-        
-        v_by_dir = [
-                    (-4, -4), (0, -5), (4, -4),
-                    (-5, 0),            (5, 0),
-                    (-4, 4),  (0, 5),  (4, 4)
-                    ]
-
-        agent_states = self.agents.get_state()
-        bullet_states = self.bullets.get_state()
-        cur_states = {"agents":agent_states, "bullets":bullet_states}
-        agent_moves = self.agents.get_moves(cur_states)
+    def step_game(self, state, agent_moves):
+        agent_states = state["agents"]
+        bullet_states = state["bullets"]
 
         for i in agent_states:
             x, y = agent_states[i]['position']
-            if 5 <= agent_moves[i] <= 12:
-                agent_center = (x+25, y+25)
-                v = v_by_dir[agent_moves[i]-5]
-                self.add_bullet("bullet", {'position':agent_center, 'velocity':v, 'source':i})
-                agent_states[i]['cd'] = 60
+            if 5 <= agent_moves[i] <= 12:  # try to shoot
+                if agent_states[i]["cd"] > 0:
+                    agent_states[i]['cd'] -= 1
+                    continue
+
+                agent_center = (x + 25, y + 25)
+                v = v_by_dir[agent_moves[i] - 5]
+
+                bullet_config = level_config.bullet.initial_state.copy()
+                bullet_config.update({'position': agent_center, 'velocity': v, 'source': i})
+
+                self.add_bullet(
+                    Bullet(bullet_config)
+                )
+
+                agent_states[i]['cd'] = 5
                 continue
-            
+
             move = move_set[agent_moves[i]]
-            if(move == 'w'):
+            if move == 'w':
                 y -= 5
-            elif(move == 'a'):
+            elif move == 'a':
                 x -= 5
-            elif(move == 's'):
+            elif move == 's':
                 y += 5
-            elif(move == 'd'):
+            elif move == 'd':
                 x += 5
-            elif(move == 'rest'):
+            elif move == 'rest':
                 pass
 
-            if x < 0: # prevents the agents from going out of the screen
+            if x < 0:  # prevents the agents from going out of the screen
                 x = 0
-            elif x > 950:
-                x = 950
+            elif x > level_config.window_size[0] - 50:
+                x = level_config.window_size[0] - 50
             if y < 0:
                 y = 0
-            elif y > 750:
-                y = 750
+            elif y > level_config.window_size[1] - 50:
+                y = level_config.window_size[1] - 50
 
             agent_states[i]['position'] = (x, y)
-            if agent_states[i]['cd'] <= 0:
-                continue
             agent_states[i]['cd'] -= 1
-
-        self.agents.update_state(agent_states)
-            
-        bullet_states = self.bullets.get_state() # shooting adds new bullets, need to get the updated one
 
         for i in bullet_states:
             x, y = bullet_states[i]['position']
             v_x, v_y = bullet_states[i]['velocity']
             x += v_x
             y += v_y
-            if x < 0 or x > 1000 or y < 0 or y > 800: # delete if out of the screen
+            if x < 0 or x > 1000 or y < 0 or y > 800:  # delete if out of the screen
                 bullet_states[i] = None
                 continue
             bullet_states[i]['position'] = (x, y)
-        
-        self.bullets.update_state(bullet_states)
-    
+
+    def apply_collisions(self, state):
+        agent_states = state["agents"]
+        bullet_states = state["bullets"]
+
+        for a in agent_states:
+            if agent_states[a] is None:
+                continue
+            a_pos = agent_states[a]['position']
+
+            for b in bullet_states:
+                if bullet_states[b] is None:
+                    continue
+                b_pos = bullet_states[b]['position']
+
+                source = bullet_states[b]['source']
+                # on collision
+                if (a_pos[0] < b_pos[0] + 5 and a_pos[0] + 50 > b_pos[0] and
+                        a_pos[1] < b_pos[1] + 5 and a_pos[1] + 50 > b_pos[1]):
+                    if source == a: continue  # bullet comes from the agent itself, skip
+
+                    # agent on collision
+                    agent_states[a]['hp'] -= 10
+
+                    # give score for hitting opponent
+                    if agent_states.__contains__(source):
+                        agent_states[source]["score"] += 10
+
+                    if agent_states[a]['hp'] <= 0:
+                        agent_states[a] = None
+
+                    # bullet on collision
+                    bullet_states[b] = None
+
+    def is_over(self, state):
+        return len(state["agents"]) == 1
 
     def render(self, screen):
-        assert(self.render_on)
-        self.agents.update()
         self.agents.draw(screen)
-        self.bullets.update()
         self.bullets.draw(screen)
 
     def __repr__(self):

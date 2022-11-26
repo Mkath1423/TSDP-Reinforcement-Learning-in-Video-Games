@@ -1,10 +1,14 @@
+import torch
+
 from utilities import LoggerConfig, create_logger, get_config
 from utilities.config import ModelConfig, TrainerConfig
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 logger_config = get_config("ai", "logger")
 
 if logger_config is None:
-    logger_config = {"name", "AI"}
+    logger_config = {"name": "AI"}
 
 log = create_logger(LoggerConfig(logger_config))
 
