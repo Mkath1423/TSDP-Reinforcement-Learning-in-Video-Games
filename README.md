@@ -56,9 +56,9 @@ Packages:
 |     |─ files.py
 ```
 ## Installation
-fork the repo 🙂 🍴
-pip install -r requirements.txt
-python main.py "config/default.yaml"
+fork the repo 🙂 🍴 <br/>
+pip install -r requirements.txt <br/>
+python main.py "config/default.yaml" <br/>
 
 ## Features
 - Configuration and logging system
