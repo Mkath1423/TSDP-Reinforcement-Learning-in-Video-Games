@@ -1,8 +1,9 @@
+from game import log
+
 import pygame
 
 from utilities.files import is_file
 
-from game import log
 
 _sprites = {
 

@@ -1,25 +1,26 @@
-import time
-
-import numpy as np
-import pygame
-import torch
-
-from gameobject import GameObject, GameObjectGroup
-from agent import Agent
-from bullet import Bullet
-from player import Player
-import numpy
-from matplotlib import pyplot as plt
-
 from game import log, level_config
 
-move_set = ['w', 'a', 's', 'd', 'rest']
+import torch
+import numpy as np
+
+from game.gameobject import GameObjectGroup
+from game.agent import Agent
+from game.bullet import Bullet
+
+move_set = ['rest', 'w', 'a', 's', 'd']
+
+
+def norm(x, y):
+    n = np.linalg.norm([x, y])
+    return x / n, y / n
+
 
 v_by_dir = [
-    (-4, -4), (0, -5), (4, -4),
-    (-5, 0), (5, 0),
-    (-4, 4), (0, 5), (4, 4)
+    norm(-4, -4), norm(0, -5), norm(4, -4),
+    norm(-5,  0),              norm(5,  0),
+    norm(-4,  4), norm(0, 5),  norm(4,  4)
 ]
+
 
 class Level:
     def __init__(self):
@@ -39,7 +40,6 @@ class Level:
         surface = np.zeros((level_config.window_size[0], level_config.window_size[1]))
         self.agents.render_class_map(surface)
         self.bullets.render_class_map(surface)
-
         cur_states = {
             "agents": agent_states,
             "bullets": bullet_states,
@@ -61,7 +61,11 @@ class Level:
 
         for i in agent_states:
             x, y = agent_states[i]['position']
-            if 5 <= agent_moves[i] <= 12:
+            if 5 <= agent_moves[i] <= 12:  # try to shoot
+                if agent_states[i]["cd"] > 0:
+                    agent_states[i]['cd'] -= 1
+                    continue
+
                 agent_center = (x + 25, y + 25)
                 v = v_by_dir[agent_moves[i] - 5]
 
@@ -72,7 +76,7 @@ class Level:
                     Bullet(bullet_config)
                 )
 
-                agent_states[i]['cd'] = 60
+                agent_states[i]['cd'] = 5
                 continue
 
             move = move_set[agent_moves[i]]
@@ -89,16 +93,14 @@ class Level:
 
             if x < 0:  # prevents the agents from going out of the screen
                 x = 0
-            elif x > 950:
-                x = 950
+            elif x > level_config.window_size[0] - 50:
+                x = level_config.window_size[0] - 50
             if y < 0:
                 y = 0
-            elif y > 750:
-                y = 750
+            elif y > level_config.window_size[1] - 50:
+                y = level_config.window_size[1] - 50
 
             agent_states[i]['position'] = (x, y)
-            if agent_states[i]['cd'] <= 0:
-                continue
             agent_states[i]['cd'] -= 1
 
         for i in bullet_states:

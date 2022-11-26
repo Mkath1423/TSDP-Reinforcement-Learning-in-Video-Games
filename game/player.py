@@ -1,6 +1,8 @@
+from game import log
+
 import pygame
 
-from agent import Agent
+from game.agent import Agent
 
 
 class Player(Agent):

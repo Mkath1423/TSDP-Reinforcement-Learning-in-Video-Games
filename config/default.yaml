@@ -2,45 +2,63 @@ game:
   level:
     agents:
       - name: ai
-        position: [ 100, 100 ]
+        position: [ 250, 250 ]
         type: AIAgent
         color: [ 0, 0, 255 ]
         size: [ 50, 50 ]
         sprite: "sprite_path"
         max_hp: 10
-        shoot_cooldown: 1
+        shoot_cooldown: 5
         movment_speed: 10
         class_label: 4
 
       - name: target1
-        position: [ 50, 50 ]
+        dont_move: False
+        dont_shoot: True
+        position: [ 250, 100]
         type: Target
         color: [ 255, 0, 255 ]
         size: [ 50, 50 ]
         sprite: "sprite_path"
         max_hp: 10
-        shoot_cooldown: 1
+        shoot_cooldown: 5
         movment_speed: 10
         class_label: 3
 
       - name: target2
+        dont_move: False
+        dont_shoot: True
         type: Target
-        position: [ 300, 300 ]
+        position: [ 100, 400 ]
+        color: [ 255, 0, 255 ]
         size: [ 50, 50 ]
         sprite: "sprite_path"
         max_hp: 10
-        shoot_cooldown: 1
+        shoot_cooldown: 5
+        movment_speed: 10
+        class_label: 3
+
+      - name: target3
+        dont_move: True
+        dont_shoot: False
+        type: Target
+        position: [ 400, 300 ]
+        color: [ 255, 0, 255 ]
+        size: [ 50, 50 ]
+        sprite: "sprite_path"
+        max_hp: 10
+        shoot_cooldown: 5
         movment_speed: 10
         class_label: 3
 
     bullet:
       damage: 1
-      speed: 1
+      speed: 30
       size: [3, 3]
       class_label: 2
 
     title: Arena
-    window_size: [1000, 800]
+    window_size: [500, 500]
     fps: 60
     background_color: black
 
@@ -55,6 +73,8 @@ game:
 
 ai:
   trainer:
+    eval: False
+
     lr: 0.001
     gamma: 0.8
     epsilon: 0.8
@@ -62,8 +82,10 @@ ai:
     batch_size: 1000
 
   model:
-    num_extra_inputs: 0
-    num_outputs: 5
+    #checkpoint: checkpoints/can_shoot_scr_-4.779_ep_39.pt
+
+    num_extra_inputs: 1
+    num_outputs: 12
 
   logger:
     name: AI

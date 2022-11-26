@@ -1,10 +1,12 @@
-from collections import deque
-from dataclasses import dataclass
-import random
+from ai import log
 
 import torch
+import random
 
-from ai import log
+from collections import deque
+from dataclasses import dataclass
+
+
 
 
 @dataclass
@@ -43,7 +45,7 @@ class ReplayMemory:
         return sample
 
     def get_random_sample(self, size):
-        random.sample(self._memory, min(size, len(self)))
+        return random.sample(self._memory, min(size, len(self)))
 
     def __getitem__(self, item):
         self._memory.__getitem__(item)

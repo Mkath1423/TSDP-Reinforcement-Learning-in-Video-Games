@@ -1,16 +1,18 @@
-import abc
-import pygame
-import numpy as np
-from random import randint
-
 from game import log
-from gameobject import GameObject
+
+import abc
+
+import pygame
+
+from game.gameobject import GameObject
 
 
 class Agent(GameObject, abc.ABC):
 
     def __init__(self, name, state):
+
         # constant information
+        self.initial_position = state.get("position", (0, 0))
         self.size = state.get("size", (50, 50))
         self.color = state.get("color", (0, 0, 255))
         self.max_hp = state.get("max_hp", 10)
@@ -19,7 +21,7 @@ class Agent(GameObject, abc.ABC):
 
         # variable state
         self.state = {
-            "position": state.get("position", (0, 0)),
+            "position": self.initial_position,
             "cd": self.shoot_cooldown,
             "hp": self.max_hp,
             "score": 0
@@ -32,6 +34,14 @@ class Agent(GameObject, abc.ABC):
 
         # gameobject class will set the name and id
         super().__init__(name, state.get("class_label", 0))
+
+    def reset(self):
+        self.state = {
+            "position": self.initial_position,
+            "cd": self.shoot_cooldown,
+            "hp": self.max_hp,
+            "score": 0
+        }
 
     def __repr__(self):
         return f"Agent({self.name}, {self.get_state()})"

@@ -1,7 +1,8 @@
+from game import log
+
 import pygame
 
-from game import log
-from gameobject import GameObject
+from game.gameobject import GameObject
 
 
 class Bullet(GameObject):

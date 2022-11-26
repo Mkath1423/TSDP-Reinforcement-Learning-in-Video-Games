@@ -1,11 +1,9 @@
+from game import log
 
 from abc import ABC, abstractmethod
-
 import itertools
 
 from pygame.sprite import Sprite, AbstractGroup, Group
-
-from game import log
 
 
 class GameObject(Sprite, ABC):
@@ -17,6 +15,9 @@ class GameObject(Sprite, ABC):
         self.name = name
 
         self.class_label = class_label
+
+    def reset(self):
+        pass
 
     @property
     def get_id(self):

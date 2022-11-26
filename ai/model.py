@@ -1,18 +1,17 @@
+from ai import log
+
 import torch
 
 import torch.nn as nn
 from torch.nn import Conv2d, BatchNorm2d, ReLU, AdaptiveAvgPool2d, Linear
-import torch.nn.functional as F
 
 import torch.optim as optim
-import random
-
-from ai.building_blocks import BNDoubleConv
 
 import torchvision
-from ai.ReplayMemory import State
 
-from ai import log
+import random
+
+from ai.ReplayMemory import State
 
 
 class PolicyNetwork(nn.Module):
@@ -80,47 +79,72 @@ class QTrainer:
         self.gamma = gamma
         self.epsilon = epsilon
 
-        self.model : nn.Module = model
+        self.model: nn.Module = model
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
         self.num_moves = num_moves
 
-    # 'w'=0, 'a'=1, 's'=2, 'd'=3, rest=4, TODO shoot=5
-    # state is the processed image data?
     def get_move(self, state):
         if random.random() < self.epsilon and self.model.training:
             return random.randint(0, self.num_moves)
         else:
             prediction = self.model(state)
+            # log.debug([round(e, ndigits=3) for e in prediction[0].tolist()], torch.argmax(prediction).item())
             return torch.argmax(prediction).item()
-    
+
+    def generate_mini_batches(self, state: State,
+                              action,
+                              reward,
+                              next_state: State,
+                              done):
+
+        mini_state = [
+            State(image, info) for image, info in zip(state.image.split(4), state.info.split(4))
+        ]
+        mini_action = action.split(4)
+        mini_reward = reward.split(4)
+
+        next_state = [
+            State(image, info) for image, info in zip(next_state.image.split(4), next_state.info.split(4))
+        ]
+
+        mini_done = done.split(4)
+
+        return zip(
+            mini_state,
+            mini_action,
+            mini_reward,
+            next_state,
+            mini_done
+        )
+
     def train_step(self,
-                   state: State,
-                   action,
-                   reward,
-                   next_state: State,
-                   done):
-        #TODO: add checks
+                   state_: State,
+                   action_,
+                   reward_,
+                   next_state_: State,
+                   done_):
+        for state, action, reward, next_state, done in self.generate_mini_batches(state_, action_, reward_, next_state_, done_):
+            # 1: predicted Q values with current state
+            pred = self.model(state)
+            next_prediction = self.model(next_state)
 
-        # 1: predicted Q values with current state
-        pred = self.model(state)
+            target = pred.clone()
+            for idx in range(len(done)):
+                Q_new = reward[idx]
+                if not done[idx]:
+                    Q_new = reward[idx] + self.gamma * torch.max(next_prediction[idx])
 
-        target = pred.clone()
-        for idx in range(len(done)):
-            Q_new = reward[idx]
-            if not done[idx]:
-                Q_new = reward[idx] + self.gamma * torch.max(self.model(next_state[idx]))
+                target[idx][torch.argmax(action[idx]).item()] = Q_new
 
-            target[idx][torch.argmax(action[idx]).item()] = Q_new
-    
-        # 2: Q_new = r + y * max(next_predicted Q value) -> only do this if not done
-        # pred.clone()
-        # preds[argmax(action)] = Q_new
-        self.optimizer.zero_grad()
-        loss = self.criterion(target, pred)
-        loss.backward()
+            # 2: Q_new = r + y * max(next_predicted Q value) -> only do this if not done
+            # pred.clone()
+            # preds[argmax(action)] = Q_new
+            self.optimizer.zero_grad()
+            loss = self.criterion(target, pred)
+            loss.backward()
 
-        self.optimizer.step()
+            self.optimizer.step()
 
 
 if __name__ == "__main__":

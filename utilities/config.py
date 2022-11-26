@@ -136,7 +136,7 @@ class TrainerConfig(Config):
 
         :param config: the loaded configuration of this object
         """
-
+        self.eval = False
         self.lr: float = 0.001
         self.gamma: float = 0.8
         self.epsilon: float = 0.8
@@ -161,7 +161,7 @@ class ModelConfig(Config):
         self.num_extra_inputs: int = -1
         self.num_outputs: int = -1
 
-        self.load_path = None
+        self.checkpoint = ""
 
         super().__init__(config, self.requirements)
 

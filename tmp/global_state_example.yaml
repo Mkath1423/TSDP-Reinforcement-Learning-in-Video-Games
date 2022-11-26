@@ -1,4 +1,0 @@
-{agents: {2: {cd: 57, hp: 10, position: !!python/tuple [130, 0]}, 4: {cd: 0, hp: 10,
-      position: !!python/tuple [610, 420]}}, bullets: {68: {position: !!python/tuple [
-        131, 1], source: 2, velocity: !!python/tuple [-4, -4]}, 69: {position: !!python/tuple [
-        139, 9], source: 2, velocity: !!python/tuple [-4, -4]}}}

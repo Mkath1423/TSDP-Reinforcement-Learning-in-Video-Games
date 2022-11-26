@@ -1,6 +1,7 @@
 import os
 import yaml
 
+
 # utility wrappers
 def exists(path, log=None, msg="", supress_warning=False):
     out = os.path.exists(path)
@@ -34,8 +35,8 @@ def make_dirs(path, log=None, msg="", supress_warning=False):
             log.error("directory all ready exists: " + msg + "\n" + str(e))
         return False
 
-
     return True
+
 
 # file read write
 def load_yaml(path, log=None):
@@ -77,10 +78,10 @@ def save_yaml(data, path, log=None, default_flow_style=False):
 if __name__ == "__main__":
     _data = {
         "agents": [dict([
-            (["hp", "x", 'y', 'move'][n], n*(i+1)) for n in range(4)
+            (["hp", "x", 'y', 'move'][n], n * (i + 1)) for n in range(4)
         ]) for i in range(3)],
         "bullets": [dict([
-            (["x", 'y', 'dir'][n], n*(i+1)) for n in range(3)
+            (["x", 'y', 'dir'][n], n * (i + 1)) for n in range(3)
         ]) for i in range(5)]
     }
 

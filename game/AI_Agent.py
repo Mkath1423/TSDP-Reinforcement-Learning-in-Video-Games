@@ -1,16 +1,15 @@
-import abc
+from game import log
+
 import pygame
-import numpy as np
+
 import torch
 
+from ai import model_config, trainer_config, device
 from ai.ReplayMemory import ReplayMemory, Transition, State
-from ai import model_config, trainer_config, log
-from game.agent import Agent
-from gameobject import GameObject
-import pygame
-
 from ai.model import PolicyNetwork, QTrainer
-from utilities.files import save_yaml
+
+from game.agent import Agent
+from utilities.checkpoints import load_checkpoint
 
 
 class AIAgent(Agent):
@@ -20,12 +19,23 @@ class AIAgent(Agent):
             model_config.num_outputs
         )
 
+        self.model.to(device=device)
+
+        if model_config.checkpoint:
+            valid, model, _, _ = load_checkpoint(model_config.checkpoint)
+
+            if valid:
+                self.model.load_state_dict(model)
+
+        if trainer_config.eval:
+            self.model.eval()
+
         self.trainer = QTrainer(
             self.model,
             trainer_config.lr,
             trainer_config.gamma,
             trainer_config.epsilon,
-            4 + 8
+            model_config.num_outputs
         )
 
         self.replay_memory = ReplayMemory(10000)
@@ -36,13 +46,26 @@ class AIAgent(Agent):
     def get_reward(self):
         return self.get_state()["score"]
 
+    def get_cd(self):
+        return self.get_state()["cd"]
+
+    def get_hp(self):
+        return self.get_state()["hp"]
+
     def get_move(self, global_state):
         #save_yaml(global_state, r"tmp\global_state_example.yaml", default_flow_style=True)
 
-        image = global_state["class_map"]
-        info = None
+        image = global_state["class_map"].to(device=device)
+        info = torch.tensor([[1 if self.get_cd() < 0 else -1]], dtype=torch.float, device=device)
 
         return self.trainer.get_move(State(image, info))
+
+    def train(self, is_train):
+        if is_train:
+            self.model.train()
+
+        else:
+            self.model.eval()
 
     def remember(self,
                  previous_state,
@@ -57,11 +80,28 @@ class AIAgent(Agent):
 
         transition = self.replay_memory.get_last()
 
-        state: State = transition.state
-        action = torch.tensor([transition.action], dtype=torch.long)
-        reward = torch.tensor([transition.reward], dtype=torch.float)
-        new_state: State = transition.new_state
-        is_done = [transition.is_done]
+        state: State = State(
+            transition.state.image.to(device=device),
+            transition.state.info.to(device=device)
+        )
+
+        action = torch.tensor([transition.action], dtype=torch.long, device=device)
+        reward = torch.tensor([transition.reward], dtype=torch.float, device=device)
+
+        new_state: State = State(
+            transition.new_state.image.to(device=device),
+            transition.new_state.info.to(device=device)
+        )
+
+        is_done = torch.tensor([transition.is_done], dtype=torch.bool, device=device)
+
+        # log.debug(
+        #     f"state {state.image.shape} {state.info.shape}\n" +
+        #     f"action {action.shape}\n" +
+        #     f"reward {reward.shape}\n" +
+        #     f"new state {new_state.image.shape} {new_state.info.shape}\n" +
+        #     f"is done {is_done.shape}\n"
+        # )
 
         self.trainer.train_step(state, action, reward, new_state, is_done)
 
@@ -69,19 +109,29 @@ class AIAgent(Agent):
         if len(self.replay_memory) == 0:
             return
 
-        transitions = self.replay_memory.get_random_sample(1000)
+        transitions = self.replay_memory.get_random_sample(500)
 
         state: State = State(
-            torch.stack([t.state.image for t in transitions]).to(dtype=torch.float),
-            torch.stack([t.state.info for t in transitions]).to(dtype=torch.float)
+            torch.cat([t.state.image for t in transitions]).to(dtype=torch.float, device=device),
+            torch.cat([t.state.info for t in transitions]).to(dtype=torch.float, device=device)
         )
-        action = torch.tensor([t.action for t in transitions]).to(dtype=torch.long)
-        reward = torch.tensor([t.reward for t in transitions]).to(dtype=torch.float)
+
+        action = torch.tensor([t.action for t in transitions]).to(dtype=torch.long, device=device)
+        reward = torch.tensor([t.reward for t in transitions]).to(dtype=torch.float, device=device)
 
         new_state: State = State(
-            torch.stack([t.new_state.image for t in transitions]).to(dtype=torch.float),
-            torch.stack([t.new_state.info for t in transitions]).to(dtype=torch.float)
+            torch.cat([t.new_state.image for t in transitions]).to(dtype=torch.float, device=device),
+            torch.cat([t.new_state.info for t in transitions]).to(dtype=torch.float, device=device)
         )
-        is_done = [t.is_done for t in transitions]
+
+        is_done = torch.tensor([t.is_done for t in transitions], dtype=torch.bool, device=device)
+
+        # log.debug(
+        #     f"state {state.image.shape} {state.info.shape}\n" +
+        #     f"action {action.shape}\n" +
+        #     f"reward {reward.shape}\n" +
+        #     f"new state {new_state.image.shape} {new_state.info.shape}\n" +
+        #     f"is done {is_done.shape}\n"
+        # )
 
         self.trainer.train_step(state, action, reward, new_state, is_done)
