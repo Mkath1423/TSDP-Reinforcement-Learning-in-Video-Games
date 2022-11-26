@@ -1,30 +1,31 @@
+from ai import log
+
 import torch
 
 import torch.nn as nn
 from torch.nn import Conv2d, BatchNorm2d, ReLU, AdaptiveAvgPool2d, Linear
-import torch.nn.functional as F
 
 import torch.optim as optim
-import random
-
-from ai.building_blocks import BNDoubleConv
 
 import torchvision
-from ai.ReplayMemory import State
 
-from ai import log
+import random
+
+from ai.ReplayMemory import State
 
 
 class PolicyNetwork(nn.Module):
 
     def __init__(self, num_additional_features, num_outputs):
         super().__init__()
+        self.num_additional_features = num_additional_features
+        self.num_outputs = num_outputs
 
         self.in_conv = Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.in_bn = BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         self.in_relu = ReLU(inplace=True)
 
-        resnet = torchvision.models.resnet18(pretrained=False)
+        resnet = torchvision.models.resnet18()
 
         self.layer1 = resnet.layer1
         self.layer2 = resnet.layer2
@@ -37,17 +38,21 @@ class PolicyNetwork(nn.Module):
 
     def forward(self, state: State):
         image, features = state.image, state.info
-        if len(image.shape) != 4:
-            log.error(f"image must be of form [N, 1, H, W] not {image.shape}.")
-            return None
-
-        if len(features.shape) != 2:
-            log.error(f"features must be of form [N, F] not {features.shape}.")
-            return None
-
-        if image.shape[0] != features.shape[0]:
-            log.error(f"image and features must have the same number of batches. image shape: {image.shape}, feature shape: {features.shape}.")
-            return None
+        # if image is None or (features is None and self.num_additional_features != 0):
+        #     log.error("model got None inputs returning blank array")
+        #     return torch.zeros((1, self.num_outputs)) # TODO check if this is right
+        #
+        # if len(image.shape) != 4:
+        #     log.error(f"image must be of form [N, 1, H, W] not {image.shape}.")
+        #     return None
+        #
+        # if features is not None and len(features.shape) != 2:
+        #     log.error(f"features must be of form [N, F] not {features.shape}.")
+        #     return None
+        #
+        # if image.shape[0] != features.shape[0]:
+        #     log.error(f"image and features must have the same number of batches. image shape: {image.shape}, feature shape: {features.shape}.")
+        #     return None
 
         x = self.in_conv(image)
         x = self.in_bn(x)
@@ -69,58 +74,77 @@ class PolicyNetwork(nn.Module):
 
 
 class QTrainer:
-    def __init__(self, model, lr, gamma, num_moves):
+    def __init__(self, model, lr, gamma, epsilon, num_moves):
         self.lr = lr
         self.gamma = gamma
-        self.model : nn.Module = model
+        self.epsilon = epsilon
+
+        self.model: nn.Module = model
         self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
         self.num_moves = num_moves
 
-    # 'w'=0, 'a'=1, 's'=2, 'd'=3, rest=4, TODO shoot=5
-    # state is the processed image data?
     def get_move(self, state):
-
-        final_move = torch.zeros((self.num_moves, ))
-
-        # TODO better epsilon choice for exploration tradeoff
-        if random.randint(0, 200) < 80 and self.model.training:
-            move = random.randint(0, self.num_moves)
+        if random.random() < self.epsilon and self.model.training:
+            return random.randint(0, self.num_moves)
         else:
             prediction = self.model(state)
-            move = torch.argmax(prediction).item()
+            # log.debug([round(e, ndigits=3) for e in prediction[0].tolist()], torch.argmax(prediction).item())
+            return torch.argmax(prediction).item()
 
-        final_move[move] = 1
+    def generate_mini_batches(self, state: State,
+                              action,
+                              reward,
+                              next_state: State,
+                              done):
 
-        return final_move
-    
+        mini_state = [
+            State(image, info) for image, info in zip(state.image.split(4), state.info.split(4))
+        ]
+        mini_action = action.split(4)
+        mini_reward = reward.split(4)
+
+        next_state = [
+            State(image, info) for image, info in zip(next_state.image.split(4), next_state.info.split(4))
+        ]
+
+        mini_done = done.split(4)
+
+        return zip(
+            mini_state,
+            mini_action,
+            mini_reward,
+            next_state,
+            mini_done
+        )
+
     def train_step(self,
-                   state: State,
-                   action,
-                   reward,
-                   next_state: State,
-                   done):
-        #TODO: add checks
+                   state_: State,
+                   action_,
+                   reward_,
+                   next_state_: State,
+                   done_):
+        for state, action, reward, next_state, done in self.generate_mini_batches(state_, action_, reward_, next_state_, done_):
+            # 1: predicted Q values with current state
+            pred = self.model(state)
+            next_prediction = self.model(next_state)
 
-        # 1: predicted Q values with current state
-        pred = self.model(state)
+            target = pred.clone()
+            for idx in range(len(done)):
+                Q_new = reward[idx]
+                if not done[idx]:
+                    Q_new = reward[idx] + self.gamma * torch.max(next_prediction[idx])
 
-        target = pred.clone()
-        for idx in range(len(done)):
-            Q_new = reward[idx]
-            if not done[idx]:
-                Q_new = reward[idx] + self.gamma * torch.max(self.model(next_state[idx]))
+                target[idx][torch.argmax(action[idx]).item()] = Q_new
 
-            target[idx][torch.argmax(action[idx]).item()] = Q_new
-    
-        # 2: Q_new = r + y * max(next_predicted Q value) -> only do this if not done
-        # pred.clone()
-        # preds[argmax(action)] = Q_new
-        self.optimizer.zero_grad()
-        loss = self.criterion(target, pred)
-        loss.backward()
+            # 2: Q_new = r + y * max(next_predicted Q value) -> only do this if not done
+            # pred.clone()
+            # preds[argmax(action)] = Q_new
+            self.optimizer.zero_grad()
+            loss = self.criterion(target, pred)
+            loss.backward()
 
-        self.optimizer.step()
+            self.optimizer.step()
 
 
 if __name__ == "__main__":

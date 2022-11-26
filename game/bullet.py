@@ -1,38 +1,36 @@
+from game import log
+
 import pygame
-import abc
 
-from gameobject import GameObject, GameObjectGroup
+from game.gameobject import GameObject
 
 
-class Bullet(GameObject, abc.ABC):
-    def __init__(self, name, state):
+class Bullet(GameObject):
+    def __init__(self, state):
         pygame.sprite.Sprite.__init__(self)
-        self.state = state
+        # constant information
+        self.damage = state.get("damage", 1)
+        self.speed = state.get("speed", 30)
+        self.size = state.get("size", (5, 5))
+        self.class_label = state.get("class_label", 2)
 
-        # need to determine the side and to make it more specific
-        self.image = pygame.Surface((5, 5))
+        # variable state
+        self.state = {
+            "position": state.get("position", (0, 0)),
+            "velocity": (self.speed * state.get("velocity", (0, 0))[0],
+                         self.speed * state.get("velocity", (0, 0))[1]),
+            "source": state.get("source", -1),
+        }
+
+        # for pygame render
+        self.image = pygame.Surface(self.size)
         self.image.fill("yellow")
         self.rect = self.image.get_rect(topleft=self.state['position'])
 
-        super().__init__(name)
-
-    def update(self):
-        self.rect.x = self.state['position'][0]
-        self.rect.y = self.state['position'][1]
-
-    def __str__(self):
-        return self.__repr__()
+        super().__init__("bullet", self.class_label)
 
     def __repr__(self):
         return f"Bullet({self.name}, {self.state['position']}, {self.state['velocity']})"
-
-    @property
-    def get_id(self):
-        return self.id
-
-    @property
-    def get_name(self):
-        return self.name
 
     def get_state(self):
         return self.state
@@ -40,8 +38,11 @@ class Bullet(GameObject, abc.ABC):
     def update_state(self, new_state):
         self.state = new_state
 
+        self.rect.x = self.state['position'][0]
+        self.rect.y = self.state['position'][1]
+
     def get_move(self, game_state):
-        pass
+        return 0
 
 """
     # substitution for pygame collide
